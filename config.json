@@ -1,0 +1,81 @@
+{
+  "ec2_instances": {
+    "web_server": {
+      "instance_type": "t2.micro",
+      "ami": "ami-0c55b159cbfafe1f0",
+      "subnet_id": "subnet-12345678",
+      "security_group_rules": {
+        "ingress": [
+          {
+            "from_port": 22,
+            "to_port": 22,
+            "protocol": "tcp",
+            "cidr_blocks": ["0.0.0.0/0"]
+          },
+          {
+            "from_port": 80,
+            "to_port": 80,
+            "protocol": "tcp",
+            "source_security_group": "lb"
+          }
+        ]
+      }
+    },
+    "batch_processor": {
+      "instance_type": "t2.medium",
+      "ami": "ami-0c55b159cbfafe1f0",
+      "subnet_id": "subnet-87654321",
+      "security_group_rules": {
+        "ingress": [
+          {
+            "from_port": 22,
+            "to_port": 22,
+            "protocol": "tcp",
+            "cidr_blocks": ["10.0.0.0/16"]
+          }
+        ]
+      }
+    }
+  },
+  "load_balancers": {
+    "frontend_lb": {
+      "name": "frontend-lb",
+      "subnet_ids": ["subnet-12345678", "subnet-87654321"],
+      "security_group_rules": {
+        "ingress": [
+          {
+            "from_port": 80,
+            "to_port": 80,
+            "protocol": "tcp",
+            "cidr_blocks": ["0.0.0.0/0"]
+          }
+        ]
+      },
+      "listener": {
+        "port": 80,
+        "protocol": "HTTP"
+      },
+      "target_instances": ["web_server"]  // Reference EC2 instances by key
+    }
+  },
+  "rds_databases": {
+    "main_db": {
+      "db_name": "mydatabase",
+      "username": "admin",
+      "password": "securepassword123",
+      "instance_class": "db.t3.micro",
+      "allocated_storage": 20,
+      "subnet_ids": ["subnet-12345678", "subnet-87654321"],
+      "security_group_rules": {
+        "ingress": [
+          {
+            "from_port": 5432,
+            "to_port": 5432,
+            "protocol": "tcp",
+            "source_security_groups": ["web_server"]  // Allow EC2 instances by key
+          }
+        ]
+      }
+    }
+  }
+}
